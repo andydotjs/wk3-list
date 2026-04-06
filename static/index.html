@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>list.it</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+    <div class="mx-auto max-w-5xl px-4 py-8">
+        <header class="mb-8 rounded-3xl border border-slate-200 bg-white shadow-sm shadow-slate-300/40">
+            <div class="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="text-4xl">📋</span>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-bold tracking-tight text-slate-900">list</span>
+                        <span class="text-3xl text-slate-900">.</span>
+                        <span class="text-3xl italic text-slate-900">it</span>
+                    </div>
+                </div>
+                <details class="relative inline-block">
+                    <summary class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm transition hover:border-slate-400 hover:bg-slate-100">☰ Menu</summary>
+                    <div class="absolute right-0 z-10 mt-2 w-52 rounded-2xl border border-slate-200 bg-white p-3 shadow-lg shadow-slate-300/30">
+                        <button id="storage-settings" class="w-full rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-left text-sm text-slate-700 transition hover:border-slate-400 hover:bg-slate-100">Storage Settings</button>
+                    </div>
+                </details>
+            </div>
+        </header>
+
+        <div id="lists-container" class="space-y-4">
+            <div id="add-list-placeholder" class="add-placeholder rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-4 text-slate-500 transition hover:border-slate-400 hover:bg-slate-100" tabindex="0">Click to add new list</div>
+        </div>
+    </div>
+
+    <!-- Consent Modal -->
+    <div id="consent-modal" class="modal">
+        <div class="modal-content">
+            <h2>Data Storage Consent</h2>
+            <p>This app uses browser local storage to save your lists. Without consent, your lists will not be saved when you revisit the page.</p>
+            <button id="accept-consent">Accept</button>
+            <button id="decline-consent">Decline</button>
+        </div>
+    </div>
+
+    <!-- Storage Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h2>Storage Settings</h2>
+            <p>Current setting: <span id="current-consent"></span></p>
+            <button id="change-consent">Change Consent</button>
+            <button id="close-settings">Close</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
