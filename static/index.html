@@ -51,6 +51,39 @@
         </div>
     </div>
 
+    <!-- Style List Modal -->
+    <div id="style-modal" class="modal">
+        <div class="modal-content">
+            <h2>Style List</h2>
+            <p class="mb-4 text-sm text-slate-600">Choose a background and title color for this list.</p>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <button type="button" class="style-option rounded-2xl border border-slate-200 px-4 py-4 text-left" data-bg-color="#ecfdf5" data-title-color="#166534">
+                    <div class="mb-2 h-8 rounded-xl bg-emerald-100"></div>
+                    <div class="font-semibold" style="color:#166534;">Green</div>
+                </button>
+                <button type="button" class="style-option rounded-2xl border border-slate-200 px-4 py-4 text-left" data-bg-color="#eff6ff" data-title-color="#1d4ed8">
+                    <div class="mb-2 h-8 rounded-xl bg-blue-100"></div>
+                    <div class="font-semibold" style="color:#1d4ed8;">Blue</div>
+                </button>
+                <button type="button" class="style-option rounded-2xl border border-slate-200 px-4 py-4 text-left" data-bg-color="#fdf2f8" data-title-color="#be185d">
+                    <div class="mb-2 h-8 rounded-xl bg-pink-100"></div>
+                    <div class="font-semibold" style="color:#be185d;">Pink</div>
+                </button>
+                <button type="button" class="style-option rounded-2xl border border-slate-200 px-4 py-4 text-left" data-bg-color="#fffbeb" data-title-color="#92400e">
+                    <div class="mb-2 h-8 rounded-xl bg-amber-100"></div>
+                    <div class="font-semibold" style="color:#92400e;">Amber</div>
+                </button>
+                <button type="button" class="style-option rounded-2xl border border-slate-200 px-4 py-4 text-left" data-bg-color="#eef2ff" data-title-color="#3730a3">
+                    <div class="mb-2 h-8 rounded-xl bg-indigo-100"></div>
+                    <div class="font-semibold" style="color:#3730a3;">Indigo</div>
+                </button>
+            </div>
+            <div class="mt-5 flex justify-end gap-3">
+                <button id="close-style-modal" class="rounded-full border border-slate-300 bg-slate-50 px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
