@@ -8,6 +8,23 @@ body {
     opacity: 0.5;
 }
 
+.item.completed {
+    background-color: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+.item-text.completed {
+    color: #166534;
+    text-decoration: line-through;
+}
+
+.deleted-item {
+    font-size: 0.95rem;
+    color: #64748b;
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+}
+
 .list h2:focus,
 .add-placeholder:focus,
 .add-item-placeholder:focus,

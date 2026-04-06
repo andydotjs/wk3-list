@@ -1,6 +1,7 @@
-let data = { lists: [] };
+let data = { lists: [], deletedItems: [] };
 let consent = null;
 let draggedElement = null;
+let showAllDeleted = {};
 
 function loadData() {
     consent = localStorage.getItem('consent');
@@ -10,8 +11,9 @@ function loadData() {
             data = JSON.parse(stored);
         }
     } else if (consent === 'no') {
-        data = { lists: [] };
+        data = { lists: [], deletedItems: [] };
     }
+    data.deletedItems = data.deletedItems || [];
 }
 
 function saveData() {
@@ -44,16 +46,43 @@ function renderLists() {
             </div>
             <ul class="space-y-3" data-list-id="${list.id}">
                 ${list.items.map(item => `
-                    <li class="item flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3" draggable="true" data-list-id="${list.id}" data-item-id="${item.id}">
-                        <span class="item-text flex-1 min-w-0 text-slate-900" contenteditable="true" data-list-id="${list.id}" data-item-id="${item.id}">${item.text}</span>
+                    <li class="item flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 ${item.completed ? 'completed' : ''}" draggable="true" data-list-id="${list.id}" data-item-id="${item.id}">
+                        <div class="flex flex-1 items-center gap-3 min-w-0">
+                            <input type="checkbox" class="item-completed-checkbox h-4 w-4 rounded border-slate-300 text-emerald-600" data-list-id="${list.id}" data-item-id="${item.id}" ${item.completed ? 'checked' : ''}>
+                            <span class="item-text flex-1 min-w-0 text-slate-900 ${item.completed ? 'completed' : ''}" contenteditable="true" data-list-id="${list.id}" data-item-id="${item.id}">${item.text}</span>
+                        </div>
                         <button class="delete-btn rounded-full border border-slate-200 bg-slate-50 p-2 text-slate-500 transition hover:border-red-400 hover:text-red-600" data-list-id="${list.id}" data-item-id="${item.id}" title="Delete item">&#128465;</button>
                     </li>
                 `).join('')}
                 <li class="add-item-placeholder rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-slate-500 transition hover:border-slate-400 hover:bg-slate-100" contenteditable="true" data-list-id="${list.id}">Click to add new item</li>
             </ul>
+            ${renderListDeletedSection(list)}
         `;
         container.appendChild(listDiv);
     });
+}
+
+function renderListDeletedSection(list) {
+    const deletedItems = data.deletedItems.filter(item => item.listId == list.id);
+    if (deletedItems.length === 0) {
+        return '';
+    }
+    const visibleItems = (showAllDeleted[list.id] ? deletedItems : deletedItems.slice(-3)).slice().reverse();
+    const showMore = deletedItems.length > 3;
+    return `
+        <details class="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+            <summary class="cursor-pointer font-semibold text-slate-900">Deleted ${deletedItems.length > 0 ? `(${deletedItems.length})` : ''}</summary>
+            <ul class="mt-3 space-y-2">
+                ${visibleItems.map(item => `
+                    <li class="deleted-item flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-500">
+                        <span class="truncate">${item.text}</span>
+                        <button class="restore-btn text-slate-700 hover:text-slate-900" data-item-id="${item.id}" data-list-id="${list.id}">Restore</button>
+                    </li>
+                `).join('')}
+            </ul>
+            ${showMore ? `<button type="button" class="mt-3 text-sm font-medium text-slate-600 hover:text-slate-900 deleted-show-more" data-list-id="${list.id}">${showAllDeleted[list.id] ? 'Show less' : 'Show all'}</button>` : ''}
+        </details>
+    `;
 }
 
 function addList(name) {
@@ -62,6 +91,38 @@ function addList(name) {
     saveData();
     renderLists();
     focusNewItemPlaceholder(id);
+}
+
+function toggleItemCompleted(listId, itemId, completed) {
+    const list = data.lists.find(l => l.id == listId);
+    if (!list) {
+        return;
+    }
+    const item = list.items.find(i => i.id == itemId);
+    if (!item) {
+        return;
+    }
+    item.completed = completed;
+    saveData();
+    renderLists();
+}
+
+function restoreDeletedItem(itemId) {
+    const deletedIndex = data.deletedItems.findIndex(item => item.id == itemId);
+    if (deletedIndex === -1) {
+        return;
+    }
+
+    const [deletedItem] = data.deletedItems.splice(deletedIndex, 1);
+    const targetList = data.lists.find(l => l.id == deletedItem.listId) || data.lists[0];
+    if (targetList) {
+        targetList.items.push({ id: deletedItem.id, text: deletedItem.text, completed: deletedItem.completed || false });
+    } else {
+        data.lists.unshift({ id: Date.now(), name: 'Restored list', items: [{ id: deletedItem.id, text: deletedItem.text, completed: deletedItem.completed || false }] });
+    }
+
+    saveData();
+    renderLists();
 }
 
 function editList(id, newName) {
@@ -111,11 +172,17 @@ function editItem(listId, itemId, newText) {
 
 function deleteItem(listId, itemId) {
     const list = data.lists.find(l => l.id == listId);
-    if (list) {
-        list.items = list.items.filter(i => i.id != itemId);
-        saveData();
-        renderLists();
+    if (!list) {
+        return;
     }
+    const item = list.items.find(i => i.id == itemId);
+    if (!item) {
+        return;
+    }
+    list.items = list.items.filter(i => i.id != itemId);
+    data.deletedItems.push({ id: item.id, text: item.text, listId, completed: item.completed || false, deletedAt: Date.now() });
+    saveData();
+    renderLists();
 }
 
 function reorderLists(fromIndex, toIndex) {
@@ -163,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('decline-consent').addEventListener('click', () => {
         localStorage.setItem('consent', 'no');
         consent = 'no';
-        data = { lists: [] };
+        data = { lists: [], deletedItems: [] };
         hideConsentModal();
         renderLists();
     });
@@ -174,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (consent === 'yes') {
             localStorage.setItem('consent', 'no');
             consent = 'no';
-            data = { lists: [] };
+            data = { lists: [], deletedItems: [] };
             localStorage.removeItem('listAppData');
         } else {
             localStorage.setItem('consent', 'yes');
@@ -213,6 +280,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('lists-container').addEventListener('click', (e) => {
+        if (e.target.classList.contains('item-completed-checkbox')) {
+            toggleItemCompleted(e.target.dataset.listId, e.target.dataset.itemId, e.target.checked);
+            return;
+        }
+        if (e.target.classList.contains('deleted-show-more')) {
+            const listId = e.target.dataset.listId;
+            showAllDeleted[listId] = !showAllDeleted[listId];
+            renderLists();
+            return;
+        }
+        if (e.target.classList.contains('restore-btn')) {
+            restoreDeletedItem(e.target.dataset.itemId);
+            return;
+        }
         if (e.target.classList.contains('delete-btn')) {
             if (e.target.dataset.id && !e.target.dataset.listId) {
                 const confirmBox = document.getElementById(`delete-confirm-${e.target.dataset.id}`);
@@ -235,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.focus();
         } else {
             const itemRow = e.target.closest('.item');
-            if (itemRow && !e.target.classList.contains('delete-btn')) {
+            if (itemRow && !e.target.classList.contains('delete-btn') && !e.target.classList.contains('item-completed-checkbox')) {
                 const field = itemRow.querySelector('.item-text');
                 if (field) {
                     field.focus();
